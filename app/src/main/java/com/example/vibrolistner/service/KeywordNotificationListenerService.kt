@@ -4,6 +4,7 @@ import android.app.Notification
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import com.example.vibrolistner.core.data.KeywordRepository
+import com.example.vibrolistner.core.alert.AlertManager
 import com.example.vibrolistner.core.vibration.VibrationManager
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -34,11 +35,11 @@ class KeywordNotificationListenerService : NotificationListenerService() {
     @InstallIn(SingletonComponent::class)
     interface ServiceEntryPoint {
         fun keywordRepository(): KeywordRepository
-        fun vibrationManager(): VibrationManager
+        fun alertManager(): AlertManager
     }
 
     private lateinit var repository: KeywordRepository
-    private lateinit var vibrationManager: VibrationManager
+    private lateinit var alertManager: AlertManager
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -56,7 +57,7 @@ class KeywordNotificationListenerService : NotificationListenerService() {
             ServiceEntryPoint::class.java,
         )
         repository = entryPoint.keywordRepository()
-        vibrationManager = entryPoint.vibrationManager()
+        alertManager = entryPoint.alertManager()
 
         // Continuously collect keywords from the database
         serviceScope.launch {
@@ -92,7 +93,7 @@ class KeywordNotificationListenerService : NotificationListenerService() {
         // Cancel all vibration jobs and the service scope
         activeVibrationJobs.values.forEach { it.cancel() }
         activeVibrationJobs.clear()
-        vibrationManager.cancel()
+        alertManager.cancelAll()
         serviceScope.cancel()
     }
 
@@ -120,7 +121,7 @@ class KeywordNotificationListenerService : NotificationListenerService() {
     private fun startVibrationLoop(notificationKey: String) {
         val job = serviceScope.launch {
             while (isActive) {
-                vibrationManager.vibrateOnce()
+                alertManager.triggerAlertPulse()
                 delay(5000L) // 2s vibration + 3s pause = 5s total cycle
             }
         }
@@ -133,9 +134,9 @@ class KeywordNotificationListenerService : NotificationListenerService() {
      */
     private fun stopVibrationLoop(notificationKey: String) {
         activeVibrationJobs.remove(notificationKey)?.cancel()
-        // Only cancel hardware vibration if no other loops are active
+        // Only cancel hardware alert if no other loops are active
         if (activeVibrationJobs.isEmpty()) {
-            vibrationManager.cancel()
+            alertManager.cancelAll()
         }
     }
 

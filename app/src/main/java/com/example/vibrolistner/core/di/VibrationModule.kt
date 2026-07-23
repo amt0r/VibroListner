@@ -18,4 +18,13 @@ object VibrationModule {
     fun provideVibrationManager(@ApplicationContext context: Context): VibrationManager {
         return VibrationManager(context)
     }
+
+    @Provides
+    @Singleton
+    fun provideAlertManager(
+        @ApplicationContext context: Context,
+        vibrationManager: VibrationManager
+    ): com.example.vibrolistner.core.alert.AlertManager {
+        return com.example.vibrolistner.core.alert.AlertManager(context, vibrationManager)
+    }
 }
