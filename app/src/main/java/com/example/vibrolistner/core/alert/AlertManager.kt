@@ -19,12 +19,12 @@ class AlertManager(
     private var wakeLock: PowerManager.WakeLock? = null
 
     /**
-     * Triggers a single alert pulse.
-     * Wakes the screen, vibrates once, and ensures the alarm sound is playing.
+     * Starts continuous alerts.
+     * Wakes the screen, starts the vibration loop, and ensures the alarm sound is playing.
      */
-    fun triggerAlertPulse() {
+    fun startAlert() {
         wakeScreen()
-        vibrationManager.vibrateOnce()
+        vibrationManager.startVibrationLoop()
         playSound()
     }
 
@@ -46,8 +46,8 @@ class AlertManager(
             PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP,
             "VibroListener::AlertWakeLock"
         )
-        // Acquire for 5 seconds to wake up the screen, then auto-release.
-        wakeLock?.acquire(5000L)
+        // Acquire wake lock continuously. It will be explicitly released in cancelAll().
+        wakeLock?.acquire(10*60*1000L /*10 minutes*/)
     }
 
     private fun releaseWakeLock() {

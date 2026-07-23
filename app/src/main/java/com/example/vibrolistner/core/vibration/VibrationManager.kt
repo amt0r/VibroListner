@@ -18,17 +18,18 @@ class VibrationManager(context: Context) {
         .setUsage(VibrationAttributes.USAGE_ALARM)
         .build()
 
-    private val oneShotEffect = VibrationEffect.createOneShot(
-        2000L, // 1 second
-        VibrationEffect.DEFAULT_AMPLITUDE,
+    // Delay 0ms, Vibrate 2000ms, Pause 4000ms
+    private val waveformEffect = VibrationEffect.createWaveform(
+        longArrayOf(0, 2000L, 4000L),
+        0 // Repeat from index 0
     )
 
     /**
-     * Triggers a single 1-second vibration pulse using ALARM usage
+     * Starts a continuous vibration loop using ALARM usage
      * to bypass silent mode restrictions.
      */
-    fun vibrateOnce() {
-        vibrator.vibrate(oneShotEffect, alarmAttributes)
+    fun startVibrationLoop() {
+        vibrator.vibrate(waveformEffect, alarmAttributes)
     }
 
     /**
